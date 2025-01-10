@@ -1,0 +1,48 @@
+// Pin Definitions
+const int lightSensorPin = A0;   // Photodetector connected to analog pin A0
+const int buzzerPin = 8;         // Buzzer connected to digital pin 8
+const int ledPin = 3;            // LED (light source) connected to digital pin 3
+
+// Threshold Value
+const int vibrationThreshold = 50;  // Adjust based on testing (sensitivity level)
+
+// Variables
+int lightIntensity = 0;             // To store light intensity reading
+int baselineIntensity = 0;          // Baseline light intensity without vibrations
+
+void setup() {
+  pinMode(buzzerPin, OUTPUT);       // Set buzzer pin as output
+  pinMode(ledPin, OUTPUT);          // Set LED pin as output
+  digitalWrite(ledPin, HIGH);       // Turn on LED (light source)
+
+  Serial.begin(9600);              // Initialize Serial Monitor
+  delay(2000);                     // Wait for system stabilization
+
+  // Measure baseline intensity
+  for (int i = 0; i < 50; i++) {
+    baselineIntensity += analogRead(lightSensorPin);
+    delay(50);                     // Short delay for averaging
+  }
+  baselineIntensity /= 50;         // Average the readings
+  Serial.print("Baseline Intensity: ");
+  Serial.println(baselineIntensity);
+}
+
+void loop() {
+  lightIntensity = analogRead(lightSensorPin);  // Read light intensity
+  int intensityDifference = abs(baselineIntensity - lightIntensity);
+
+  Serial.print("Light Intensity: ");
+  Serial.print(lightIntensity);
+  Serial.print(" | Intensity Difference: ");
+  Serial.println(intensityDifference);
+
+  // Detect significant vibrations
+  if (intensityDifference > vibrationThreshold) {
+    digitalWrite(buzzerPin, HIGH); // Activate buzzer
+    delay(500);                    // Buzzer on for 500 ms
+    digitalWrite(buzzerPin, LOW);  // Turn off buzzer
+  }
+
+  delay(100); // Delay for stability
+}
